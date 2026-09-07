@@ -2,73 +2,488 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ESP32-C3 Control</title>
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0">
+
+<title>ESP32 Actuator Control</title>
+
 <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+
 <style>
-body{font-family:Arial,sans-serif;background:#f2f2f2;text-align:center;margin:0;padding:25px}
-.card{max-width:420px;margin:auto;background:white;padding:28px;border-radius:20px;box-shadow:0 4px 18px rgba(0,0,0,.15)}
-h1{margin-top:0}.status{font-size:28px;margin:25px 0}
-button{width:90%;padding:18px;margin:10px 0;font-size:22px;border:0;border-radius:12px}
-.on{background:#35a853;color:white}.off{background:#555;color:white}
-.connected{color:#16803c}.disconnected{color:#c62828}
-.small{font-size:14px;color:#666;margin-top:20px}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, Helvetica, sans-serif;
+    background: #111;
+    color: white;
+    text-align: center;
+}
+
+.container {
+    max-width: 500px;
+    margin: auto;
+    padding: 25px;
+}
+
+h1 {
+    margin-bottom: 5px;
+}
+
+.subtitle {
+    color: #aaa;
+    margin-bottom: 25px;
+}
+
+.connection {
+    padding: 12px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    background: #333;
+    font-weight: bold;
+}
+
+.status-box {
+    background: #222;
+    border-radius: 15px;
+    padding: 20px;
+    margin-bottom: 30px;
+}
+
+.status-label {
+    color: #aaa;
+    font-size: 14px;
+}
+
+.status {
+    font-size: 28px;
+    font-weight: bold;
+    margin-top: 8px;
+}
+
+button {
+    width: 100%;
+    border: none;
+    border-radius: 15px;
+    color: white;
+    font-size: 28px;
+    font-weight: bold;
+    padding: 25px;
+    margin: 10px 0;
+    cursor: pointer;
+    touch-action: manipulation;
+}
+
+button:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+}
+
+.extend {
+    background: #1677ff;
+}
+
+.retract {
+    background: #1677ff;
+}
+
+.stop {
+    background: #d71920;
+    font-size: 34px;
+    padding: 30px;
+}
+
+.message {
+    margin-top: 20px;
+    min-height: 25px;
+    color: #aaa;
+}
+
 </style>
 </head>
+
 <body>
-<div class="card">
-<h1>ESP32-C3 CONTROL</h1>
-<div class="status">LED STATUS<br><strong id="ledStatus">UNKNOWN</strong></div>
-<button class="on" onclick="sendCommand('ON')">💡 TURN ON</button>
-<button class="off" onclick="sendCommand('OFF')">TURN OFF</button>
-<p>HiveMQ: <strong id="connectionStatus">CONNECTING...</strong></p>
-<div class="small">MQTT over secure WebSockets</div>
+
+<div class="container">
+
+    <h1>ACTUATOR CONTROL</h1>
+
+    <div class="subtitle">
+        ESP32-C3 Remote Controller
+    </div>
+
+    <div id="connection"
+         class="connection">
+        Connecting...
+    </div>
+
+    <div class="status-box">
+
+        <div class="status-label">
+            ACTUATOR STATUS
+        </div>
+
+        <div id="status"
+             class="status">
+            UNKNOWN
+        </div>
+
+    </div>
+
+    <button id="extend"
+            class="extend"
+            onclick="sendCommand('EXTEND')"
+            disabled>
+        ▲ EXTEND
+    </button>
+
+    <button id="stop"
+            class="stop"
+            onclick="sendCommand('STOP')"
+            disabled>
+        ■ STOP
+    </button>
+
+    <button id="retract"
+            class="retract"
+            onclick="sendCommand('RETRACT')"
+            disabled>
+        ▼ RETRACT
+    </button>
+
+    <div id="message"
+         class="message">
+    </div>
+
 </div>
 
 <script>
-const broker = "wss://2b425261231945f785495606e49d8e51.s1.eu.hivemq.cloud:8884/mqtt";
+
+// =====================================================
+// HIVEMQ
+// =====================================================
+
+const broker =
+    "wss://2b425261231945f785495606e49d8e51.s1.eu.hivemq.cloud:8884/mqtt";
+
 const username = "web_led";
-const password = "084581m!";
 
-const commandTopic = "esp32/led/command";
-const statusTopic = "esp32/led/status";
+const password =
+    prompt("Enter HiveMQ web_led password:");
 
-const client = mqtt.connect(broker,{
-  username: username,
-  password: password,
-  clientId: "web-led-" + Math.random().toString(16).slice(2),
-  clean: true,
-  reconnectPeriod: 5000
+
+// =====================================================
+// MQTT TOPICS
+// =====================================================
+
+const commandTopic =
+    "esp32/actuator/command";
+
+const statusTopic =
+    "esp32/actuator/status";
+
+
+// =====================================================
+// HTML ELEMENTS
+// =====================================================
+
+const connectionElement =
+    document.getElementById("connection");
+
+const statusElement =
+    document.getElementById("status");
+
+const messageElement =
+    document.getElementById("message");
+
+const extendButton =
+    document.getElementById("extend");
+
+const stopButton =
+    document.getElementById("stop");
+
+const retractButton =
+    document.getElementById("retract");
+
+
+// =====================================================
+// MQTT CLIENT
+// =====================================================
+
+const clientId =
+    "WEB-ACTUATOR-" +
+    Math.random()
+        .toString(16)
+        .substring(2);
+
+const client = mqtt.connect(
+    broker,
+    {
+        clientId: clientId,
+
+        username: username,
+
+        password: password,
+
+        clean: true,
+
+        reconnectPeriod: 3000,
+
+        connectTimeout: 10000,
+
+        keepalive: 30
+    }
+);
+
+
+// =====================================================
+// MQTT CONNECTED
+// =====================================================
+
+client.on("connect", function () {
+
+    console.log("MQTT connected");
+
+    connectionElement.innerText =
+        "● MQTT CONNECTED";
+
+    connectionElement.style.background =
+        "#145c2a";
+
+    client.subscribe(
+        statusTopic,
+        function (err) {
+
+            if (err) {
+
+                console.error(
+                    "Subscribe error:",
+                    err
+                );
+
+            } else {
+
+                console.log(
+                    "Subscribed to status"
+                );
+
+            }
+
+        }
+    );
+
+    enableButtons();
+
+    messageElement.innerText =
+        "Ready";
+
 });
 
-client.on("connect",()=>{
-  document.getElementById("connectionStatus").textContent="CONNECTED";
-  document.getElementById("connectionStatus").className="connected";
-  client.subscribe(statusTopic);
+
+// =====================================================
+// MQTT MESSAGE
+// =====================================================
+
+client.on("message", function (
+    topic,
+    payload
+) {
+
+    if (topic !== statusTopic)
+        return;
+
+    const status =
+        payload.toString();
+
+    console.log(
+        "STATUS:",
+        status
+    );
+
+    updateStatus(status);
+
 });
 
-client.on("message",(topic,message)=>{
-  if(topic===statusTopic){
-    document.getElementById("ledStatus").textContent=message.toString();
-  }
+
+// =====================================================
+// CONNECTION LOST
+// =====================================================
+
+client.on("offline", function () {
+
+    console.log(
+        "MQTT offline"
+    );
+
+    connectionElement.innerText =
+        "● MQTT OFFLINE";
+
+    connectionElement.style.background =
+        "#6b1d1d";
+
+    disableButtons();
+
+    statusElement.innerText =
+        "OFFLINE";
+
 });
 
-client.on("offline",()=>{
-  document.getElementById("connectionStatus").textContent="OFFLINE";
-  document.getElementById("connectionStatus").className="disconnected";
+
+// =====================================================
+// MQTT ERROR
+// =====================================================
+
+client.on("error", function (error) {
+
+    console.error(
+        "MQTT error:",
+        error
+    );
+
+    connectionElement.innerText =
+        "MQTT ERROR";
+
+    connectionElement.style.background =
+        "#6b1d1d";
+
 });
 
-client.on("error",(err)=>{
-  console.log("MQTT error:",err);
+
+// =====================================================
+// RECONNECTING
+// =====================================================
+
+client.on("reconnect", function () {
+
+    console.log(
+        "Attempting MQTT reconnect..."
+    );
+
+    connectionElement.innerText =
+        "● RECONNECTING...";
+
+    connectionElement.style.background =
+        "#665400";
+
+    disableButtons();
+
 });
 
-function sendCommand(command){
-  if(client.connected){
-    client.publish(commandTopic,command);
-  }else{
-    alert("Not connected to HiveMQ.");
-  }
+
+// =====================================================
+// SEND COMMAND
+// =====================================================
+
+function sendCommand(command) {
+
+    if (!client.connected) {
+
+        messageElement.innerText =
+            "MQTT is not connected";
+
+        return;
+
+    }
+
+    console.log(
+        "Sending:",
+        command
+    );
+
+    client.publish(
+        commandTopic,
+        command,
+        {
+            qos: 1
+        }
+    );
+
+    messageElement.innerText =
+        "Command sent: " + command;
+
 }
+
+
+// =====================================================
+// UPDATE STATUS
+// =====================================================
+
+function updateStatus(status) {
+
+    statusElement.innerText =
+        status;
+
+    if (status === "EXTENDING") {
+
+        messageElement.innerText =
+            "Actuator extending";
+
+    }
+
+    else if (status === "RETRACTING") {
+
+        messageElement.innerText =
+            "Actuator retracting";
+
+    }
+
+    else if (status === "STOPPED") {
+
+        messageElement.innerText =
+            "Actuator stopped";
+
+    }
+
+    else if (status === "FAULT") {
+
+        messageElement.innerText =
+            "FAULT - check actuator";
+
+    }
+
+    else {
+
+        messageElement.innerText =
+            status;
+
+    }
+
+}
+
+
+// =====================================================
+// ENABLE BUTTONS
+// =====================================================
+
+function enableButtons() {
+
+    extendButton.disabled = false;
+
+    stopButton.disabled = false;
+
+    retractButton.disabled = false;
+
+}
+
+
+// =====================================================
+// DISABLE BUTTONS
+// =====================================================
+
+function disableButtons() {
+
+    extendButton.disabled = true;
+
+    stopButton.disabled = true;
+
+    retractButton.disabled = true;
+
+}
+
 </script>
+
 </body>
 </html>
