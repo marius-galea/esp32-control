@@ -1,0 +1,893 @@
+!DOCTYPE html
+html lang=en
+
+head
+
+meta charset=UTF-8
+
+meta name=viewport
+      content=width=device-width, initial-scale=1.0
+
+titleSolar Tracker Controltitle
+
+
+!-- MQTT.js --
+
+script src=httpsunpkg.commqttdistmqtt.min.jsscript
+
+
+style
+
+body {
+    font-family Arial, sans-serif;
+    background #f2f2f2;
+    text-align center;
+    margin 0;
+    padding 20px;
+}
+
+.container {
+    max-width 500px;
+    margin auto;
+    background white;
+    padding 25px;
+    border-radius 15px;
+    box-shadow 0 4px 15px rgba(0,0,0,0.15);
+}
+
+h1 {
+    margin-top 0;
+}
+
+.subtitle {
+    color #666;
+    margin-bottom 25px;
+}
+
+
+ =========================================================
+   MQTT CONNECTION
+   ========================================================= 
+
+.connection {
+    padding 12px;
+    border-radius 8px;
+    margin-bottom 20px;
+    font-weight bold;
+}
+
+.connected {
+    background #d4edda;
+    color #155724;
+}
+
+.disconnected {
+    background #f8d7da;
+    color #721c24;
+}
+
+.connecting {
+    background #fff3cd;
+    color #856404;
+}
+
+
+ =========================================================
+   MODE
+   ========================================================= 
+
+.mode-title {
+    font-size 18px;
+    font-weight bold;
+    margin-bottom 10px;
+}
+
+.mode-buttons {
+    display flex;
+    gap 10px;
+    margin-bottom 25px;
+}
+
+.mode-buttons button {
+    flex 1;
+    padding 15px;
+    font-size 17px;
+    border-radius 10px;
+    border 2px solid #ccc;
+    background #eee;
+    cursor pointer;
+}
+
+.mode-buttons button.active {
+    background #333;
+    color white;
+    border-color #333;
+}
+
+
+ =========================================================
+   ACTUATOR BUTTONS
+   ========================================================= 
+
+.actuator-buttons {
+    display flex;
+    flex-direction column;
+    gap 12px;
+}
+
+.actuator-buttons button {
+    padding 20px;
+    font-size 20px;
+    font-weight bold;
+    border none;
+    border-radius 10px;
+    cursor pointer;
+}
+
+.extend {
+    background #4caf50;
+    color white;
+}
+
+.stop {
+    background #e53935;
+    color white;
+}
+
+.retract {
+    background #2196f3;
+    color white;
+}
+
+.reset {
+    background #777;
+    color white;
+    margin-top 15px;
+}
+
+
+ =========================================================
+   STATUS
+   ========================================================= 
+
+.status-box {
+    margin-top 25px;
+    padding 15px;
+    background #f7f7f7;
+    border-radius 10px;
+    text-align left;
+}
+
+.status-row {
+    display flex;
+    justify-content space-between;
+    padding 6px 0;
+    border-bottom 1px solid #ddd;
+}
+
+.status-rowlast-child {
+    border-bottom none;
+}
+
+.status-label {
+    font-weight bold;
+}
+
+
+ =========================================================
+   AUTO INFORMATION
+   ========================================================= 
+
+.auto-info {
+    margin-top 20px;
+    padding 15px;
+    background #eef5ff;
+    border-radius 10px;
+    text-align left;
+}
+
+.auto-info h3 {
+    margin-top 0;
+}
+
+
+ =========================================================
+   FOOTER
+   ========================================================= 
+
+.footer {
+    margin-top 20px;
+    color #888;
+    font-size 12px;
+}
+
+style
+
+head
+
+
+body
+
+
+div class=container
+
+
+h1☀️ Solar Trackerh1
+
+div class=subtitle
+ESP32-C3 Single Axis Solar Tracker
+div
+
+
+!-- =======================================================
+     MQTT CONNECTION
+     ======================================================= --
+
+div id=connection
+     class=connection connecting
+
+Connecting to MQTT...
+
+div
+
+
+!-- =======================================================
+     CONTROL MODE
+     ======================================================= --
+
+div class=mode-title
+Control Mode
+div
+
+
+div class=mode-buttons
+
+button id=autoButton
+        onclick=setAutoMode()
+
+AUTO
+
+button
+
+
+button id=manualButton
+        onclick=setManualMode()
+
+MANUAL
+
+button
+
+div
+
+
+!-- =======================================================
+     ACTUATOR CONTROL
+     ======================================================= --
+
+div class=mode-title
+Manual Actuator Control
+div
+
+
+div class=actuator-buttons
+
+
+button class=extend
+        onclick=sendCommand('EXTEND')
+
+▲ EXTEND
+
+button
+
+
+button class=stop
+        onclick=sendCommand('STOP')
+
+■ STOP
+
+button
+
+
+button class=retract
+        onclick=sendCommand('RETRACT')
+
+▼ RETRACT
+
+button
+
+
+button class=reset
+        onclick=sendCommand('RESET')
+
+RESET FAULT
+
+button
+
+
+div
+
+
+!-- =======================================================
+     STATUS
+     ======================================================= --
+
+div class=status-box
+
+div class=status-row
+
+span class=status-label
+Mode
+span
+
+span id=mode
+--
+span
+
+div
+
+
+div class=status-row
+
+span class=status-label
+Actuator
+span
+
+span id=actuator
+--
+span
+
+div
+
+
+div class=status-row
+
+span class=status-label
+Left LDR
+span
+
+span id=ldrLeft
+--
+span
+
+div
+
+
+div class=status-row
+
+span class=status-label
+Right LDR
+span
+
+span id=ldrRight
+--
+span
+
+div
+
+
+div class=status-row
+
+span class=status-label
+LDR Difference
+span
+
+span id=ldrDifference
+--
+span
+
+div
+
+
+div
+
+
+!-- =======================================================
+     AUTO INFORMATION
+     ======================================================= --
+
+div class=auto-info
+
+h3☀️ Automatic Trackingh3
+
+div
+The tracker compares the two LDRs and moves the
+actuator toward the brighter side.
+div
+
+br
+
+div
+Use bMANUALb whenever you want direct control.
+div
+
+br
+
+div
+Pressing bEXTENDb or bRETRACTb
+automatically changes the controller to MANUAL mode.
+div
+
+div
+
+
+div class=footer
+
+ESP32-C3 Solar Tracker
+
+div
+
+
+div
+
+
+script
+
+
+ =========================================================
+ MQTT CONFIGURATION
+ =========================================================
+
+const broker =
+    wss2b425261231945f785495606e49d8e51.s1.eu.hivemq.cloud8884mqtt;
+
+
+const username =
+    web_led;
+
+
+ Password is requested when the page loads.
+ Do not store the password directly in this file.
+
+const password =
+    prompt(Enter HiveMQ web_led password);
+
+
+ MQTT topics
+
+const commandTopic =
+    esp32actuatorcommand;
+
+
+const statusTopic =
+    esp32actuatorstatus;
+
+
+ =========================================================
+ MQTT CLIENT
+ =========================================================
+
+const client =
+    mqtt.connect(
+        broker,
+        {
+            username username,
+            password password,
+
+            clientId
+                SafariSolarTracker- +
+                Math.random()
+                    .toString(16)
+                    .substring(2),
+
+            reconnectPeriod 3000,
+
+            connectTimeout 10000,
+
+            keepalive 30
+        }
+    );
+
+
+ =========================================================
+ CONNECTION STATUS
+ =========================================================
+
+const connection =
+    document.getElementById(connection);
+
+
+client.on(connect, function()
+{
+    console.log(MQTT connected);
+
+    connection.innerText =
+        MQTT CONNECTED;
+
+    connection.className =
+        connection connected;
+
+
+    client.subscribe(
+        statusTopic,
+        {
+            qos 1
+        },
+        function(error)
+        {
+            if (error)
+            {
+                console.log(
+                    Subscribe error,
+                    error
+                );
+            }
+            else
+            {
+                console.log(
+                    Subscribed to status
+                );
+            }
+        }
+    );
+});
+
+
+ =========================================================
+ MQTT RECONNECT
+ =========================================================
+
+client.on(reconnect, function()
+{
+    console.log(
+        MQTT reconnecting...
+    );
+
+    connection.innerText =
+        MQTT RECONNECTING...;
+
+    connection.className =
+        connection connecting;
+});
+
+
+ =========================================================
+ MQTT OFFLINE
+ =========================================================
+
+client.on(offline, function()
+{
+    console.log(
+        MQTT offline
+    );
+
+    connection.innerText =
+        MQTT OFFLINE;
+
+    connection.className =
+        connection disconnected;
+});
+
+
+ =========================================================
+ MQTT ERROR
+ =========================================================
+
+client.on(error, function(error)
+{
+    console.log(
+        MQTT error,
+        error
+    );
+
+    connection.innerText =
+        MQTT ERROR;
+
+    connection.className =
+        connection disconnected;
+});
+
+
+ =========================================================
+ MQTT MESSAGE
+ =========================================================
+
+client.on(message, function(topic, message)
+{
+    if (topic !== statusTopic)
+    {
+        return;
+    }
+
+
+    const status =
+        message.toString();
+
+
+    console.log(
+        Status,
+        status
+    );
+
+
+    parseStatus(status);
+});
+
+
+ =========================================================
+ SEND COMMAND
+ =========================================================
+
+function sendCommand(command)
+{
+    if (!client.connected)
+    {
+        alert(
+            MQTT is not connected.
+        );
+
+        return;
+    }
+
+
+    console.log(
+        Sending,
+        command
+    );
+
+
+    client.publish(
+        commandTopic,
+        command,
+        {
+            qos 1,
+            retain false
+        }
+    );
+
+
+     Manual actuator commands automatically
+     switch the ESP32 into MANUAL mode.
+
+    if (
+        command === EXTEND 
+        command === RETRACT
+    )
+    {
+        setModeDisplay(
+            MANUAL
+        );
+    }
+
+
+    if (command === AUTO)
+    {
+        setModeDisplay(
+            AUTO
+        );
+    }
+
+
+    if (command === MANUAL)
+    {
+        setModeDisplay(
+            MANUAL
+        );
+    }
+}
+
+
+ =========================================================
+ AUTO MODE
+ =========================================================
+
+function setAutoMode()
+{
+    sendCommand(
+        AUTO
+    );
+}
+
+
+ =========================================================
+ MANUAL MODE
+ =========================================================
+
+function setManualMode()
+{
+    sendCommand(
+        MANUAL
+    );
+}
+
+
+ =========================================================
+ SET MODE DISPLAY
+ =========================================================
+
+function setModeDisplay(mode)
+{
+    document.getElementById(
+        mode
+    ).innerText = mode;
+
+
+    const autoButton =
+        document.getElementById(
+            autoButton
+        );
+
+
+    const manualButton =
+        document.getElementById(
+            manualButton
+        );
+
+
+    autoButton.classList.remove(
+        active
+    );
+
+
+    manualButton.classList.remove(
+        active
+    );
+
+
+    if (mode === AUTO)
+    {
+        autoButton.classList.add(
+            active
+        );
+    }
+
+
+    if (mode === MANUAL)
+    {
+        manualButton.classList.add(
+            active
+        );
+    }
+}
+
+
+ =========================================================
+ PARSE ESP32 STATUS
+ =========================================================
+
+function parseStatus(status)
+{
+    
+       Expected ESP32 status
+
+       MODE=AUTO,STATE=STOPPED,
+       LDR_LEFT=2500,LDR_RIGHT=2400
+    
+
+
+    const parts =
+        status.split(,);
+
+
+    let mode = null;
+
+    let state = null;
+
+    let left = null;
+
+    let right = null;
+
+
+    parts.forEach(function(part)
+    {
+        const pair =
+            part.split(=);
+
+
+        if (pair.length !== 2)
+        {
+            return;
+        }
+
+
+        const key =
+            pair[0].trim();
+
+
+        const value =
+            pair[1].trim();
+
+
+        if (key === MODE)
+        {
+            mode = value;
+        }
+
+
+        if (key === STATE)
+        {
+            state = value;
+        }
+
+
+        if (key === LDR_LEFT)
+        {
+            left =
+                parseInt(value);
+        }
+
+
+        if (key === LDR_RIGHT)
+        {
+            right =
+                parseInt(value);
+        }
+    });
+
+
+     -------------------------------------------------------
+     MODE
+     -------------------------------------------------------
+
+    if (mode !== null)
+    {
+        setModeDisplay(
+            mode
+        );
+    }
+
+
+     -------------------------------------------------------
+     ACTUATOR
+     -------------------------------------------------------
+
+    if (state !== null)
+    {
+        document.getElementById(
+            actuator
+        ).innerText = state;
+    }
+
+
+     -------------------------------------------------------
+     LDR LEFT
+     -------------------------------------------------------
+
+    if (left !== null)
+    {
+        document.getElementById(
+            ldrLeft
+        ).innerText = left;
+    }
+
+
+     -------------------------------------------------------
+     LDR RIGHT
+     -------------------------------------------------------
+
+    if (right !== null)
+    {
+        document.getElementById(
+            ldrRight
+        ).innerText = right;
+    }
+
+
+     -------------------------------------------------------
+     LDR DIFFERENCE
+     -------------------------------------------------------
+
+    if (
+        left !== null &&
+        right !== null
+    )
+    {
+        const difference =
+            Math.abs(
+                left - right
+            );
+
+
+        document.getElementById(
+            ldrDifference
+        ).innerText =
+            difference;
+    }
+}
+
+
+script
+
+
+body
+
+html
