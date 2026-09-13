@@ -1,520 +1,520 @@
-!DOCTYPE html
-html lang=en
+<!DOCTYPE html>
+<html lang="en">
 
-head
+<head>
 
-meta charset=UTF-8
+<meta charset="UTF-8">
 
-meta name=viewport
-      content=width=device-width, initial-scale=1.0
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0">
 
-titleSolar Tracker Controltitle
-
-
-!-- MQTT.js --
-
-script src=httpsunpkg.commqttdistmqtt.min.jsscript
+<title>Solar Tracker Control</title>
 
 
-style
+<!-- MQTT.js -->
+
+<script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+
+
+<style>
 
 body {
-    font-family Arial, sans-serif;
-    background #f2f2f2;
-    text-align center;
-    margin 0;
-    padding 20px;
+    font-family: Arial, sans-serif;
+    background: #f2f2f2;
+    text-align: center;
+    margin: 0;
+    padding: 20px;
 }
 
 .container {
-    max-width 500px;
-    margin auto;
-    background white;
-    padding 25px;
-    border-radius 15px;
-    box-shadow 0 4px 15px rgba(0,0,0,0.15);
+    max-width: 500px;
+    margin: auto;
+    background: white;
+    padding: 25px;
+    border-radius: 15px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.15);
 }
 
 h1 {
-    margin-top 0;
+    margin-top: 0;
 }
 
 .subtitle {
-    color #666;
-    margin-bottom 25px;
+    color: #666;
+    margin-bottom: 25px;
 }
 
 
- =========================================================
+/* =========================================================
    MQTT CONNECTION
-   ========================================================= 
+   ========================================================= */
 
 .connection {
-    padding 12px;
-    border-radius 8px;
-    margin-bottom 20px;
-    font-weight bold;
+    padding: 12px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    font-weight: bold;
 }
 
 .connected {
-    background #d4edda;
-    color #155724;
+    background: #d4edda;
+    color: #155724;
 }
 
 .disconnected {
-    background #f8d7da;
-    color #721c24;
+    background: #f8d7da;
+    color: #721c24;
 }
 
 .connecting {
-    background #fff3cd;
-    color #856404;
+    background: #fff3cd;
+    color: #856404;
 }
 
 
- =========================================================
+/* =========================================================
    MODE
-   ========================================================= 
+   ========================================================= */
 
 .mode-title {
-    font-size 18px;
-    font-weight bold;
-    margin-bottom 10px;
+    font-size: 18px;
+    font-weight: bold;
+    margin-bottom: 10px;
 }
 
 .mode-buttons {
-    display flex;
-    gap 10px;
-    margin-bottom 25px;
+    display: flex;
+    gap: 10px;
+    margin-bottom: 25px;
 }
 
 .mode-buttons button {
-    flex 1;
-    padding 15px;
-    font-size 17px;
-    border-radius 10px;
-    border 2px solid #ccc;
-    background #eee;
-    cursor pointer;
+    flex: 1;
+    padding: 15px;
+    font-size: 17px;
+    border-radius: 10px;
+    border: 2px solid #ccc;
+    background: #eee;
+    cursor: pointer;
 }
 
 .mode-buttons button.active {
-    background #333;
-    color white;
-    border-color #333;
+    background: #333;
+    color: white;
+    border-color: #333;
 }
 
 
- =========================================================
+/* =========================================================
    ACTUATOR BUTTONS
-   ========================================================= 
+   ========================================================= */
 
 .actuator-buttons {
-    display flex;
-    flex-direction column;
-    gap 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
 }
 
 .actuator-buttons button {
-    padding 20px;
-    font-size 20px;
-    font-weight bold;
-    border none;
-    border-radius 10px;
-    cursor pointer;
+    padding: 20px;
+    font-size: 20px;
+    font-weight: bold;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
 }
 
 .extend {
-    background #4caf50;
-    color white;
+    background: #4caf50;
+    color: white;
 }
 
 .stop {
-    background #e53935;
-    color white;
+    background: #e53935;
+    color: white;
 }
 
 .retract {
-    background #2196f3;
-    color white;
+    background: #2196f3;
+    color: white;
 }
 
 .reset {
-    background #777;
-    color white;
-    margin-top 15px;
+    background: #777;
+    color: white;
+    margin-top: 15px;
 }
 
 
- =========================================================
+/* =========================================================
    STATUS
-   ========================================================= 
+   ========================================================= */
 
 .status-box {
-    margin-top 25px;
-    padding 15px;
-    background #f7f7f7;
-    border-radius 10px;
-    text-align left;
+    margin-top: 25px;
+    padding: 15px;
+    background: #f7f7f7;
+    border-radius: 10px;
+    text-align: left;
 }
 
 .status-row {
-    display flex;
-    justify-content space-between;
-    padding 6px 0;
-    border-bottom 1px solid #ddd;
+    display: flex;
+    justify-content: space-between;
+    padding: 6px 0;
+    border-bottom: 1px solid #ddd;
 }
 
-.status-rowlast-child {
-    border-bottom none;
+.status-row:last-child {
+    border-bottom: none;
 }
 
 .status-label {
-    font-weight bold;
+    font-weight: bold;
 }
 
 
- =========================================================
+/* =========================================================
    AUTO INFORMATION
-   ========================================================= 
+   ========================================================= */
 
 .auto-info {
-    margin-top 20px;
-    padding 15px;
-    background #eef5ff;
-    border-radius 10px;
-    text-align left;
+    margin-top: 20px;
+    padding: 15px;
+    background: #eef5ff;
+    border-radius: 10px;
+    text-align: left;
 }
 
 .auto-info h3 {
-    margin-top 0;
+    margin-top: 0;
 }
 
 
- =========================================================
+/* =========================================================
    FOOTER
-   ========================================================= 
+   ========================================================= */
 
 .footer {
-    margin-top 20px;
-    color #888;
-    font-size 12px;
+    margin-top: 20px;
+    color: #888;
+    font-size: 12px;
 }
 
-style
+</style>
 
-head
-
-
-body
+</head>
 
 
-div class=container
+<body>
 
 
-h1☀️ Solar Trackerh1
+<div class="container">
 
-div class=subtitle
+
+<h1>☀️ Solar Tracker</h1>
+
+<div class="subtitle">
 ESP32-C3 Single Axis Solar Tracker
-div
+</div>
 
 
-!-- =======================================================
+<!-- =======================================================
      MQTT CONNECTION
-     ======================================================= --
+     ======================================================= -->
 
-div id=connection
-     class=connection connecting
+<div id="connection"
+     class="connection connecting">
 
 Connecting to MQTT...
 
-div
+</div>
 
 
-!-- =======================================================
+<!-- =======================================================
      CONTROL MODE
-     ======================================================= --
+     ======================================================= -->
 
-div class=mode-title
+<div class="mode-title">
 Control Mode
-div
+</div>
 
 
-div class=mode-buttons
+<div class="mode-buttons">
 
-button id=autoButton
-        onclick=setAutoMode()
+<button id="autoButton"
+        onclick="setAutoMode()">
 
 AUTO
 
-button
+</button>
 
 
-button id=manualButton
-        onclick=setManualMode()
+<button id="manualButton"
+        onclick="setManualMode()">
 
 MANUAL
 
-button
+</button>
 
-div
+</div>
 
 
-!-- =======================================================
+<!-- =======================================================
      ACTUATOR CONTROL
-     ======================================================= --
+     ======================================================= -->
 
-div class=mode-title
+<div class="mode-title">
 Manual Actuator Control
-div
+</div>
 
 
-div class=actuator-buttons
+<div class="actuator-buttons">
 
 
-button class=extend
-        onclick=sendCommand('EXTEND')
+<button class="extend"
+        onclick="sendCommand('EXTEND')">
 
 ▲ EXTEND
 
-button
+</button>
 
 
-button class=stop
-        onclick=sendCommand('STOP')
+<button class="stop"
+        onclick="sendCommand('STOP')">
 
 ■ STOP
 
-button
+</button>
 
 
-button class=retract
-        onclick=sendCommand('RETRACT')
+<button class="retract"
+        onclick="sendCommand('RETRACT')">
 
 ▼ RETRACT
 
-button
+</button>
 
 
-button class=reset
-        onclick=sendCommand('RESET')
+<button class="reset"
+        onclick="sendCommand('RESET')">
 
 RESET FAULT
 
-button
+</button>
 
 
-div
+</div>
 
 
-!-- =======================================================
+<!-- =======================================================
      STATUS
-     ======================================================= --
+     ======================================================= -->
 
-div class=status-box
+<div class="status-box">
 
-div class=status-row
+<div class="status-row">
 
-span class=status-label
+<span class="status-label">
 Mode
-span
+</span>
 
-span id=mode
+<span id="mode">
 --
-span
+</span>
 
-div
+</div>
 
 
-div class=status-row
+<div class="status-row">
 
-span class=status-label
+<span class="status-label">
 Actuator
-span
+</span>
 
-span id=actuator
+<span id="actuator">
 --
-span
+</span>
 
-div
+</div>
 
 
-div class=status-row
+<div class="status-row">
 
-span class=status-label
+<span class="status-label">
 Left LDR
-span
+</span>
 
-span id=ldrLeft
+<span id="ldrLeft">
 --
-span
+</span>
 
-div
+</div>
 
 
-div class=status-row
+<div class="status-row">
 
-span class=status-label
+<span class="status-label">
 Right LDR
-span
+</span>
 
-span id=ldrRight
+<span id="ldrRight">
 --
-span
+</span>
 
-div
+</div>
 
 
-div class=status-row
+<div class="status-row">
 
-span class=status-label
+<span class="status-label">
 LDR Difference
-span
+</span>
 
-span id=ldrDifference
+<span id="ldrDifference">
 --
-span
+</span>
 
-div
-
-
-div
+</div>
 
 
-!-- =======================================================
+</div>
+
+
+<!-- =======================================================
      AUTO INFORMATION
-     ======================================================= --
+     ======================================================= -->
 
-div class=auto-info
+<div class="auto-info">
 
-h3☀️ Automatic Trackingh3
+<h3>☀️ Automatic Tracking</h3>
 
-div
+<div>
 The tracker compares the two LDRs and moves the
 actuator toward the brighter side.
-div
+</div>
 
-br
+<br>
 
-div
-Use bMANUALb whenever you want direct control.
-div
+<div>
+Use <b>MANUAL</b> whenever you want direct control.
+</div>
 
-br
+<br>
 
-div
-Pressing bEXTENDb or bRETRACTb
+<div>
+Pressing <b>EXTEND</b> or <b>RETRACT</b>
 automatically changes the controller to MANUAL mode.
-div
+</div>
 
-div
+</div>
 
 
-div class=footer
+<div class="footer">
 
 ESP32-C3 Solar Tracker
 
-div
+</div>
 
 
-div
+</div>
 
 
-script
+<script>
 
 
- =========================================================
- MQTT CONFIGURATION
- =========================================================
+// =========================================================
+// MQTT CONFIGURATION
+// =========================================================
 
 const broker =
-    wss2b425261231945f785495606e49d8e51.s1.eu.hivemq.cloud8884mqtt;
+    "wss://2b425261231945f785495606e49d8e51.s1.eu.hivemq.cloud:8884/mqtt";
 
 
 const username =
-    web_led;
+    "web_led";
 
 
- Password is requested when the page loads.
- Do not store the password directly in this file.
+// Password is requested when the page loads.
+// Do not store the password directly in this file.
 
 const password =
-    prompt(Enter HiveMQ web_led password);
+    prompt("Enter HiveMQ web_led password:");
 
 
- MQTT topics
+// MQTT topics
 
 const commandTopic =
-    esp32actuatorcommand;
+    "esp32/actuator/command";
 
 
 const statusTopic =
-    esp32actuatorstatus;
+    "esp32/actuator/status";
 
 
- =========================================================
- MQTT CLIENT
- =========================================================
+// =========================================================
+// MQTT CLIENT
+// =========================================================
 
 const client =
     mqtt.connect(
         broker,
         {
-            username username,
-            password password,
+            username: username,
+            password: password,
 
-            clientId
-                SafariSolarTracker- +
+            clientId:
+                "SafariSolarTracker-" +
                 Math.random()
                     .toString(16)
                     .substring(2),
 
-            reconnectPeriod 3000,
+            reconnectPeriod: 3000,
 
-            connectTimeout 10000,
+            connectTimeout: 10000,
 
-            keepalive 30
+            keepalive: 30
         }
     );
 
 
- =========================================================
- CONNECTION STATUS
- =========================================================
+// =========================================================
+// CONNECTION STATUS
+// =========================================================
 
 const connection =
-    document.getElementById(connection);
+    document.getElementById("connection");
 
 
-client.on(connect, function()
+client.on("connect", function()
 {
-    console.log(MQTT connected);
+    console.log("MQTT connected");
 
     connection.innerText =
-        MQTT CONNECTED;
+        "MQTT CONNECTED";
 
     connection.className =
-        connection connected;
+        "connection connected";
 
 
     client.subscribe(
         statusTopic,
         {
-            qos 1
+            qos: 1
         },
         function(error)
         {
             if (error)
             {
                 console.log(
-                    Subscribe error,
+                    "Subscribe error:",
                     error
                 );
             }
             else
             {
                 console.log(
-                    Subscribed to status
+                    "Subscribed to status"
                 );
             }
         }
@@ -522,66 +522,66 @@ client.on(connect, function()
 });
 
 
- =========================================================
- MQTT RECONNECT
- =========================================================
+// =========================================================
+// MQTT RECONNECT
+// =========================================================
 
-client.on(reconnect, function()
+client.on("reconnect", function()
 {
     console.log(
-        MQTT reconnecting...
+        "MQTT reconnecting..."
     );
 
     connection.innerText =
-        MQTT RECONNECTING...;
+        "MQTT RECONNECTING...";
 
     connection.className =
-        connection connecting;
+        "connection connecting";
 });
 
 
- =========================================================
- MQTT OFFLINE
- =========================================================
+// =========================================================
+// MQTT OFFLINE
+// =========================================================
 
-client.on(offline, function()
+client.on("offline", function()
 {
     console.log(
-        MQTT offline
+        "MQTT offline"
     );
 
     connection.innerText =
-        MQTT OFFLINE;
+        "MQTT OFFLINE";
 
     connection.className =
-        connection disconnected;
+        "connection disconnected";
 });
 
 
- =========================================================
- MQTT ERROR
- =========================================================
+// =========================================================
+// MQTT ERROR
+// =========================================================
 
-client.on(error, function(error)
+client.on("error", function(error)
 {
     console.log(
-        MQTT error,
+        "MQTT error:",
         error
     );
 
     connection.innerText =
-        MQTT ERROR;
+        "MQTT ERROR";
 
     connection.className =
-        connection disconnected;
+        "connection disconnected";
 });
 
 
- =========================================================
- MQTT MESSAGE
- =========================================================
+// =========================================================
+// MQTT MESSAGE
+// =========================================================
 
-client.on(message, function(topic, message)
+client.on("message", function(topic, message)
 {
     if (topic !== statusTopic)
     {
@@ -594,7 +594,7 @@ client.on(message, function(topic, message)
 
 
     console.log(
-        Status,
+        "Status:",
         status
     );
 
@@ -603,16 +603,16 @@ client.on(message, function(topic, message)
 });
 
 
- =========================================================
- SEND COMMAND
- =========================================================
+// =========================================================
+// SEND COMMAND
+// =========================================================
 
 function sendCommand(command)
 {
     if (!client.connected)
     {
         alert(
-            MQTT is not connected.
+            "MQTT is not connected."
         );
 
         return;
@@ -620,7 +620,7 @@ function sendCommand(command)
 
 
     console.log(
-        Sending,
+        "Sending:",
         command
     );
 
@@ -629,133 +629,133 @@ function sendCommand(command)
         commandTopic,
         command,
         {
-            qos 1,
-            retain false
+            qos: 1,
+            retain: false
         }
     );
 
 
-     Manual actuator commands automatically
-     switch the ESP32 into MANUAL mode.
+    // Manual actuator commands automatically
+    // switch the ESP32 into MANUAL mode.
 
     if (
-        command === EXTEND 
-        command === RETRACT
+        command === "EXTEND" ||
+        command === "RETRACT"
     )
     {
         setModeDisplay(
-            MANUAL
+            "MANUAL"
         );
     }
 
 
-    if (command === AUTO)
+    if (command === "AUTO")
     {
         setModeDisplay(
-            AUTO
+            "AUTO"
         );
     }
 
 
-    if (command === MANUAL)
+    if (command === "MANUAL")
     {
         setModeDisplay(
-            MANUAL
+            "MANUAL"
         );
     }
 }
 
 
- =========================================================
- AUTO MODE
- =========================================================
+// =========================================================
+// AUTO MODE
+// =========================================================
 
 function setAutoMode()
 {
     sendCommand(
-        AUTO
+        "AUTO"
     );
 }
 
 
- =========================================================
- MANUAL MODE
- =========================================================
+// =========================================================
+// MANUAL MODE
+// =========================================================
 
 function setManualMode()
 {
     sendCommand(
-        MANUAL
+        "MANUAL"
     );
 }
 
 
- =========================================================
- SET MODE DISPLAY
- =========================================================
+// =========================================================
+// SET MODE DISPLAY
+// =========================================================
 
 function setModeDisplay(mode)
 {
     document.getElementById(
-        mode
+        "mode"
     ).innerText = mode;
 
 
     const autoButton =
         document.getElementById(
-            autoButton
+            "autoButton"
         );
 
 
     const manualButton =
         document.getElementById(
-            manualButton
+            "manualButton"
         );
 
 
     autoButton.classList.remove(
-        active
+        "active"
     );
 
 
     manualButton.classList.remove(
-        active
+        "active"
     );
 
 
-    if (mode === AUTO)
+    if (mode === "AUTO")
     {
         autoButton.classList.add(
-            active
+            "active"
         );
     }
 
 
-    if (mode === MANUAL)
+    if (mode === "MANUAL")
     {
         manualButton.classList.add(
-            active
+            "active"
         );
     }
 }
 
 
- =========================================================
- PARSE ESP32 STATUS
- =========================================================
+// =========================================================
+// PARSE ESP32 STATUS
+// =========================================================
 
 function parseStatus(status)
 {
-    
-       Expected ESP32 status
+    /*
+       Expected ESP32 status:
 
        MODE=AUTO,STATE=STOPPED,
        LDR_LEFT=2500,LDR_RIGHT=2400
-    
+    */
 
 
     const parts =
-        status.split(,);
+        status.split(",");
 
 
     let mode = null;
@@ -770,7 +770,7 @@ function parseStatus(status)
     parts.forEach(function(part)
     {
         const pair =
-            part.split(=);
+            part.split("=");
 
 
         if (pair.length !== 2)
@@ -787,26 +787,26 @@ function parseStatus(status)
             pair[1].trim();
 
 
-        if (key === MODE)
+        if (key === "MODE")
         {
             mode = value;
         }
 
 
-        if (key === STATE)
+        if (key === "STATE")
         {
             state = value;
         }
 
 
-        if (key === LDR_LEFT)
+        if (key === "LDR_LEFT")
         {
             left =
                 parseInt(value);
         }
 
 
-        if (key === LDR_RIGHT)
+        if (key === "LDR_RIGHT")
         {
             right =
                 parseInt(value);
@@ -814,9 +814,9 @@ function parseStatus(status)
     });
 
 
-     -------------------------------------------------------
-     MODE
-     -------------------------------------------------------
+    // -------------------------------------------------------
+    // MODE
+    // -------------------------------------------------------
 
     if (mode !== null)
     {
@@ -826,45 +826,45 @@ function parseStatus(status)
     }
 
 
-     -------------------------------------------------------
-     ACTUATOR
-     -------------------------------------------------------
+    // -------------------------------------------------------
+    // ACTUATOR
+    // -------------------------------------------------------
 
     if (state !== null)
     {
         document.getElementById(
-            actuator
+            "actuator"
         ).innerText = state;
     }
 
 
-     -------------------------------------------------------
-     LDR LEFT
-     -------------------------------------------------------
+    // -------------------------------------------------------
+    // LDR LEFT
+    // -------------------------------------------------------
 
     if (left !== null)
     {
         document.getElementById(
-            ldrLeft
+            "ldrLeft"
         ).innerText = left;
     }
 
 
-     -------------------------------------------------------
-     LDR RIGHT
-     -------------------------------------------------------
+    // -------------------------------------------------------
+    // LDR RIGHT
+    // -------------------------------------------------------
 
     if (right !== null)
     {
         document.getElementById(
-            ldrRight
+            "ldrRight"
         ).innerText = right;
     }
 
 
-     -------------------------------------------------------
-     LDR DIFFERENCE
-     -------------------------------------------------------
+    // -------------------------------------------------------
+    // LDR DIFFERENCE
+    // -------------------------------------------------------
 
     if (
         left !== null &&
@@ -878,16 +878,16 @@ function parseStatus(status)
 
 
         document.getElementById(
-            ldrDifference
+            "ldrDifference"
         ).innerText =
             difference;
     }
 }
 
 
-script
+</script>
 
 
-body
+</body>
 
-html
+</html>
