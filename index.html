@@ -28,10 +28,10 @@ body{font-family:Arial,sans-serif;background:#f2f2f2;text-align:center;margin:0;
 <div class="status-row"><span class="status-label">Actuator</span><span id="actuator">--</span></div>
 <div class="status-row"><span class="status-label">Left LDR</span><span id="ldrLeft">--</span></div>
 <div class="status-row"><span class="status-label">Right LDR</span><span id="ldrRight">--</span></div>
-<div class="status-row"><span class="status-label">LDR Difference (L−R)</span><span id="ldrDifference">--</span></div>
+<div class="status-row"><span class="status-label">LDR Difference</span><span id="ldrDifference">--</span></div>
 <div class="status-row"><span class="status-label">ESP Time</span><span id="espTime">--</span></div>
 </div>
-<div class="auto-info"><h3>☀️ Automatic Schedule</h3><div><b>07:00</b> — Extend fully for 120 seconds, then stop without fault.</div><br><div><b>10:30</b> — If <b>Left − Right &gt; 300</b>, start retract correction. Thereafter the 300 threshold is ignored. Read every 30 seconds and retract in 2-second steps until <b>175 ±10%</b> (157.5–192.5).</div><br><div><b>16:00</b> — If <b>Left − Right &gt; 300</b>, start extend correction. Thereafter the 300 threshold is ignored. Read every 30 seconds and extend in 2-second steps until <b>175 ±10%</b> (157.5–192.5).</div><br><div><b>19:00</b> — Retract fully for 120 seconds, then stop without fault.</div><br><div>Pressing <b>EXTEND</b> or <b>RETRACT</b> automatically changes the controller to MANUAL mode.</div></div>
+<div class="auto-info"><h3>☀️ Automatic Tracking</h3><div>The tracker compares the two LDRs and moves the actuator toward the brighter side.</div><br><div>Use <b>MANUAL</b> whenever you want direct control.</div><br><div>Pressing <b>EXTEND</b> or <b>RETRACT</b> automatically changes the controller to MANUAL mode.</div></div>
 <div class="footer">ESP32-C3 Solar Tracker</div>
 </div>
 <script>
@@ -51,7 +51,7 @@ function sendCommand(command){if(!client.connected){alert("MQTT is not connected
 function setAutoMode(){sendCommand("AUTO")}
 function setManualMode(){sendCommand("MANUAL")}
 function setModeDisplay(mode){document.getElementById("mode").innerText=mode;const a=document.getElementById("autoButton"),m=document.getElementById("manualButton");a.classList.remove("active");m.classList.remove("active");if(mode==="AUTO")a.classList.add("active");if(mode==="MANUAL")m.classList.add("active")}
-function parseStatus(status){const parts=status.split(",");let mode=null,state=null,left=null,right=null,time=null;parts.forEach(function(part){const pair=part.split("=");if(pair.length!==2)return;const key=pair[0].trim(),value=pair[1].trim();if(key==="MODE")mode=value;if(key==="STATE")state=value;if(key==="LDR_LEFT")left=parseInt(value);if(key==="LDR_RIGHT")right=parseInt(value);if(key==="TIME")time=value});if(mode!==null)setModeDisplay(mode);if(state!==null)document.getElementById("actuator").innerText=state;if(left!==null)document.getElementById("ldrLeft").innerText=left;if(right!==null)document.getElementById("ldrRight").innerText=right;if(left!==null&&right!==null)document.getElementById("ldrDifference").innerText=left-right;if(time!==null)document.getElementById("espTime").innerText=time}
+function parseStatus(status){const parts=status.split(",");let mode=null,state=null,left=null,right=null,time=null;parts.forEach(function(part){const pair=part.split("=");if(pair.length!==2)return;const key=pair[0].trim(),value=pair[1].trim();if(key==="MODE")mode=value;if(key==="STATE")state=value;if(key==="LDR_LEFT")left=parseInt(value);if(key==="LDR_RIGHT")right=parseInt(value);if(key==="TIME")time=value});if(mode!==null)setModeDisplay(mode);if(state!==null)document.getElementById("actuator").innerText=state;if(left!==null)document.getElementById("ldrLeft").innerText=left;if(right!==null)document.getElementById("ldrRight").innerText=right;if(left!==null&&right!==null)document.getElementById("ldrDifference").innerText=Math.abs(left-right);if(time!==null)document.getElementById("espTime").innerText=time}
 </script>
 </body>
 </html>
